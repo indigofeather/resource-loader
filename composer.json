@@ -1,0 +1,28 @@
+{
+    "name": "indigofeather/resource-loader",
+    "description": "The resource loader for json, ini, yaml, php",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Lance He",
+            "email": "indigofeather@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=5.4.0",
+        "fuelphp/filesystem": "dev-master"
+    },
+    "require-dev": {
+        "codeception/codeception": "*",
+        "symfony/yaml": "~2.5"
+    },
+    "suggest": {
+        "symfony/yaml": "Allows YAML config handling."
+    },
+    "autoload": {
+        "psr-4": {
+            "Indigofeather\\ResourceLoader\\": "src/"
+        }
+    }
+}
