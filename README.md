@@ -36,8 +36,8 @@ require_once 'vendor/autoload.php';
 
 use Indigofeather\ResourceLoader\Container;
 
-$resource = new Container();
-$data = $resource->addPaths([__DIR__.'/resources/foo', __DIR__.'/resources/bar'])
+$container = new Container();
+$data = $container->addPaths([__DIR__.'/resources/foo', __DIR__.'/resources/bar'])
     ->setDefaultFormat('yml')
     ->load('data');
 
