@@ -67,7 +67,7 @@ class ContainerTest extends \Codeception\TestCase\Test
     }
 
     /**
-     * @expectedException Exception
+     * @expectedException InvalidArgumentException
      */
     public function testSetDefaultFormatWithNotSupportFormat()
     {
@@ -81,11 +81,27 @@ class ContainerTest extends \Codeception\TestCase\Test
         $this->assertEquals([$path], $this->container->getPaths());
     }
 
+    /**
+     * @expectedException InvalidArgumentException
+     */
+    public function testAddWrongPath()
+    {
+        $this->container->addPath('path/to/aa');
+    }
+
     public function testAddPaths()
     {
         $paths = $this->paths;
         $this->container->addPaths($paths);
         $this->assertEquals($paths, $this->container->getPaths());
+    }
+
+    /**
+     * @expectedException InvalidArgumentException
+     */
+    public function testAddWrongPaths()
+    {
+        $this->container->addPaths(['path/to/aa', 'path/to/bb']);
     }
 
     public function testRemovePath()

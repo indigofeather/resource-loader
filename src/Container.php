@@ -3,7 +3,8 @@
 namespace Indigofeather\ResourceLoader;
 
 use Fuel\FileSystem\Finder;
-use Exception;
+use Fuel\FileSystem\Directory;
+use InvalidArgumentException;
 
 class Container
 {
@@ -152,7 +153,7 @@ class Container
         $class = 'Indigofeather\ResourceLoader\\'.ucfirst($extension);
 
         if (! class_exists($class, true)) {
-            throw new Exception('Could not find config handler for extension: '.$extension);
+            throw new InvalidArgumentException('Could not find config handler for extension: '.$extension);
         }
 
         $handler = new $class;
@@ -166,10 +167,16 @@ class Container
      *
      * @param   array  $path  path
      * @return  $this
+     * @throws InvalidArgumentException
      */
     public function addPath($path)
     {
         $path = rtrim($path, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
+        $dir = new Directory($path);
+        if (! $dir->exists()) {
+            throw new InvalidArgumentException('invalid path: '.$path);
+        }
+
         $this->finder->addPath($path);
 
         return $this;
