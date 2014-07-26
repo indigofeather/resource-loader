@@ -1,5 +1,7 @@
 # Resource-Loader
 
+[![Build Status](https://travis-ci.org/indigofeather/resource-loader.svg)](https://travis-ci.org/indigofeather/resource-loader)
+
 The resource loader for json, ini, yaml, php
 
 ## Requirement
