@@ -46,7 +46,7 @@ class Container
      */
     public function __construct(Finder $finder = null, $defaultFormat = 'php')
     {
-        if (!$finder) {
+        if (! $finder) {
             $finder = new Finder();
         }
 
@@ -98,7 +98,7 @@ class Container
         $name = $this->ensureDefaultFormat($name);
         $this->finder->name($name);
 
-        if (!$this->finder->count()) {
+        if (! $this->finder->count()) {
             return false;
         }
 
@@ -159,7 +159,7 @@ class Container
      */
     protected function ensureDefaultFormat($file)
     {
-        if (!pathinfo($file, PATHINFO_EXTENSION)) {
+        if (! pathinfo($file, PATHINFO_EXTENSION)) {
             $file .= '.'.$this->defaultFormat;
         }
 
@@ -181,7 +181,7 @@ class Container
 
         $class = 'Indigofeather\ResourceLoader\\'.ucfirst($extension);
 
-        if (!class_exists($class, true)) {
+        if (! class_exists($class, true)) {
             throw new InvalidArgumentException('Could not find config handler for extension: '.$extension);
         }
 
