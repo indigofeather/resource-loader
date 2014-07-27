@@ -2,6 +2,11 @@
 
 namespace Indigofeather\ResourceLoader;
 
+/**
+ * Class Ini
+ *
+ * @package Indigofeather\ResourceLoader
+ */
 class Ini implements Handler
 {
     /**

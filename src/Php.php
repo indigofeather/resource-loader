@@ -2,6 +2,11 @@
 
 namespace Indigofeather\ResourceLoader;
 
+/**
+ * Class Php
+ *
+ * @package Indigofeather\ResourceLoader
+ */
 class Php implements Handler
 {
     /**

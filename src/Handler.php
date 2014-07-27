@@ -2,6 +2,12 @@
 
 namespace Indigofeather\ResourceLoader;
 
+/**
+ * Interface Handler
+ *
+ * @package Indigofeather\ResourceLoader
+ * @codeCoverageIgnore
+ */
 interface Handler
 {
     /**

@@ -2,6 +2,11 @@
 
 namespace Indigofeather\ResourceLoader;
 
+/**
+ * Class Json
+ *
+ * @package Indigofeather\ResourceLoader
+ */
 class Json implements Handler
 {
     /**

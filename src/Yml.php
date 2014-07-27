@@ -4,6 +4,11 @@ namespace Indigofeather\ResourceLoader;
 
 use Symfony\Component\Yaml\Yaml;
 
+/**
+ * Class Yml
+ *
+ * @package Indigofeather\ResourceLoader
+ */
 class Yml implements Handler
 {
     /**

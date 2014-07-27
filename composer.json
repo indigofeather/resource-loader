@@ -11,7 +11,7 @@
     "minimum-stability": "dev",
     "require": {
         "php": ">=5.4.0",
-        "fuelphp/filesystem": "dev-master"
+        "symfony/finder": "~2.5"
     },
     "require-dev": {
         "codeception/codeception": "*",

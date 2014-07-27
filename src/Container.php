@@ -2,52 +2,62 @@
 
 namespace Indigofeather\ResourceLoader;
 
-use Fuel\FileSystem\Finder;
-use Fuel\FileSystem\Directory;
+use Symfony\Component\Finder\Finder;
 use InvalidArgumentException;
+use LogicException;
 
+/**
+ * Class Container
+ *
+ * @package Indigofeather\ResourceLoader
+ */
 class Container
 {
     /**
-     * @var  \Fuel\FileSystem\Finder  $finder  resource finder
+     * @var  \Symfony\Component\Finder\Finder $finder resource finder
      */
     protected $finder;
 
     /**
-     * @var  array  $handlers  array of resource file handlers
+     * @var  array $handlers array of resource file handlers
      */
     protected $handlers;
 
     /**
-     * @var  string  $defaultFormat  default resource format
+     * @var  string $defaultFormat default resource format
      */
     protected $defaultFormat = 'php';
 
     /**
-     * @var  array  $data  cache data
+     * @var  array $data cache data
      */
     protected $data = [];
 
     /**
+     * @var bool $hasAddedPaths must adds paths before load()
+     */
+    protected $hasAddedPaths = false;
+
+    /**
      * Constructor
      *
-     * @param Finder   $finder
+     * @param Finder $finder
      * @param string $defaultFormat
      */
-    public function __construct($finder = null, $defaultFormat = 'php')
+    public function __construct(Finder $finder = null, $defaultFormat = 'php')
     {
-        if (! $finder) {
+        if (!$finder) {
             $finder = new Finder();
         }
 
         $this->defaultFormat = $defaultFormat;
-        $this->finder = $finder;
+        $this->finder        = $finder;
     }
 
     /**
      * Get a value from this container's data
      *
-     * @param string  $name
+     * @param string $name
      * @return array|null
      */
     public function get($name)
@@ -60,7 +70,7 @@ class Container
     /**
      * Check if a resource was set upon this container's data
      *
-     * @param string  $name
+     * @param string $name
      * @return bool
      */
     protected function has($name)
@@ -73,25 +83,34 @@ class Container
      *
      * @param $name
      * @return array
-     * @throws \Exception
+     * @throws LogicException
      */
     public function load($name)
     {
+        if ($this->hasAddedPaths !== true) {
+            throw new LogicException('You must call one of addPath() or addPaths() methods before load().');
+        }
+
         if ($cached = $this->get($name)) {
             return $cached;
         }
 
         $name = $this->ensureDefaultFormat($name);
-        $paths = $this->finder->findAllFiles($name);
+        $this->finder->files()->name($name);
 
-        if (empty($paths)) {
+        if (!$this->finder->count()) {
             return false;
         }
 
-        $path = end($paths);
+        $paths = [];
+        foreach ($this->finder as $file) {
+            $paths[] = $file->getRealpath();
+        }
+
+        $path      = end($paths);
         $extension = pathinfo($path, PATHINFO_EXTENSION);
-        $handler = $this->getHandler($extension);
-        $resource = $handler->load($path);
+        $handler   = $this->getHandler($extension);
+        $resource  = $handler->load($path);
 
         $this->data[$name] = $resource;
 
@@ -99,9 +118,19 @@ class Container
     }
 
     /**
+     * Get Finder
+     *
+     * @return Finder
+     */
+    public function getFinder()
+    {
+        return $this->finder;
+    }
+
+    /**
      * Set the default format
      *
-     * @param   string  $format  default format
+     * @param   string $format default format
      * @return  $this
      */
     public function setDefaultFormat($format)
@@ -130,19 +159,19 @@ class Container
      */
     protected function ensureDefaultFormat($file)
     {
-        if (! pathinfo($file, PATHINFO_EXTENSION)) {
+        if (!pathinfo($file, PATHINFO_EXTENSION)) {
             $file .= '.'.$this->defaultFormat;
         }
 
-        return empty($this->configFolder) ? $file : $this->configFolder.DIRECTORY_SEPARATOR.$file;
+        return $file;
     }
 
     /**
      * Retrieve the handler for a file type
      *
-     * @param   string   $extension  extension
+     * @param   string $extension extension
      * @return  Handler  file handler
-     * @throws Exception
+     * @throws InvalidArgumentException
      */
     protected function getHandler($extension)
     {
@@ -152,83 +181,38 @@ class Container
 
         $class = 'Indigofeather\ResourceLoader\\'.ucfirst($extension);
 
-        if (! class_exists($class, true)) {
+        if (!class_exists($class, true)) {
             throw new InvalidArgumentException('Could not find config handler for extension: '.$extension);
         }
 
-        $handler = new $class;
+        $handler                    = new $class;
         $this->handlers[$extension] = $handler;
 
         return $handler;
     }
 
     /**
-     * Add a path.
+     * Adds a path.
      *
-     * @param   array  $path  path
-     * @return  $this
-     * @throws InvalidArgumentException
+     * @param  string $path path
+     * @return $this
      */
     public function addPath($path)
     {
-        $path = rtrim($path, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
-        $dir = new Directory($path);
-        if (! $dir->exists()) {
-            throw new InvalidArgumentException('invalid path: '.$path);
-        }
-
-        $this->finder->addPath($path);
-
-        return $this;
+        return $this->addPaths((array) $path);
     }
 
     /**
      * Adds paths to look in.
      *
-     * @param array $paths paths
+     * @param   array $paths paths
      * @return  $this
      */
     public function addPaths(array $paths)
     {
-        array_map([$this, 'addPath'], $paths);
+        $this->finder->in($paths);
+        $this->hasAddedPaths = true;
 
         return $this;
-    }
-
-    /**
-     * Remove a path.
-     *
-     * @param   array  $path  path
-     * @return  $this
-     */
-    public function removePath($path)
-    {
-        $path = rtrim($path, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
-        $this->finder->removePath($path);
-
-        return $this;
-    }
-
-    /**
-     * Remove paths.
-     *
-     * @param   array  $paths  paths
-     * @return  $this
-     */
-    public function removePaths(array $paths)
-    {
-        array_map([$this, 'removePath'], $paths);
-
-        return $this;
-    }
-
-    /**
-     * Get Paths.
-     *
-     * @return array  paths
-     */
-    public function getPaths()
-    {
-        return $this->finder->getPaths();
     }
 }

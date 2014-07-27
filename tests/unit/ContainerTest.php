@@ -1,6 +1,6 @@
 <?php
 
-use Fuel\FileSystem\Finder;
+use Symfony\Component\Finder\Finder;
 use Indigofeather\ResourceLoader\Container;
 
 class ContainerTest extends \Codeception\TestCase\Test
@@ -34,8 +34,8 @@ class ContainerTest extends \Codeception\TestCase\Test
     public function testConstructWithParams()
     {
         $path = [codecept_root_dir().'resources'];
-        $finder = new Finder($path);
-        $container = new Container($finder, 'json');
+        $finder = new Finder();
+        $container = new Container($finder->in($path), 'json');
         $this->assertEquals('json', $container->getDefaultFormat());
     }
 
@@ -51,6 +51,7 @@ class ContainerTest extends \Codeception\TestCase\Test
 
     /**
      * @dataProvider formatProvider
+     * @param $format
      */
     public function testSetDefaultFormatAndGetDefaultFormat($format)
     {
@@ -74,13 +75,6 @@ class ContainerTest extends \Codeception\TestCase\Test
         $this->container->setDefaultFormat('zip');
     }
 
-    public function testAddPath()
-    {
-        $path = $this->paths[0];
-        $this->container->addPath($path);
-        $this->assertEquals([$path], $this->container->getPaths());
-    }
-
     /**
      * @expectedException InvalidArgumentException
      */
@@ -89,38 +83,12 @@ class ContainerTest extends \Codeception\TestCase\Test
         $this->container->addPath('path/to/aa');
     }
 
-    public function testAddPaths()
-    {
-        $paths = $this->paths;
-        $this->container->addPaths($paths);
-        $this->assertEquals($paths, $this->container->getPaths());
-    }
-
     /**
      * @expectedException InvalidArgumentException
      */
     public function testAddWrongPaths()
     {
         $this->container->addPaths(['path/to/aa', 'path/to/bb']);
-    }
-
-    public function testRemovePath()
-    {
-        $paths = $this->paths;
-        $this->container->addPaths($paths)->removePath(codecept_root_dir().'resources/foo/');
-        $this->assertEquals([codecept_root_dir().'resources/bar/'], $this->container->getPaths());
-    }
-
-    public function testRemovePaths()
-    {
-        $paths = $this->paths;
-        $this->container->addPaths($paths)->removePaths($paths);
-        $this->assertEmpty($this->container->getPaths());
-    }
-
-    public function testGetPaths()
-    {
-        $this->assertEmpty($this->container->getPaths());
     }
 
     public function testLoad()
@@ -142,14 +110,24 @@ class ContainerTest extends \Codeception\TestCase\Test
 
     public function testLoadNull()
     {
+        $this->container->addPaths($this->paths);
+        $this->assertFalse($this->container->load('foo'));
+    }
+
+    /**
+     * @expectedException LogicException
+     */
+    public function testLoadWithoutAddPath()
+    {
         $this->assertFalse($this->container->load('foo'));
     }
 
     public function testLoadResourcesInMultiDir()
     {
-        $ini = $this->container->addPaths($this->paths)->setDefaultFormat('ini')->load('date');
-        $php = $this->container->addPaths($this->paths)->setDefaultFormat('php')->load('date');
-        $json = $this->container->addPaths($this->paths)->setDefaultFormat('json')->load('date');
+        $this->container->addPaths($this->paths);
+        $json = $this->container->setDefaultFormat('json')->load('date');
+        $php = $this->container->setDefaultFormat('php')->load('date');
+        $ini = $this->container->setDefaultFormat('ini')->load('date');
         $this->assertEquals($json, $php);
         $this->assertArrayHasKey('date', $ini);
     }
@@ -164,5 +142,10 @@ class ContainerTest extends \Codeception\TestCase\Test
     public function testGetNull()
     {
         $this->assertNull($this->container->get('foo'));
+    }
+
+    public function testGetFinder()
+    {
+        $this->assertInstanceOf("Symfony\\Component\\Finder\\Finder", $this->container->getFinder());
     }
 }
