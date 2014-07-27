@@ -51,7 +51,7 @@ class Container
         }
 
         $this->defaultFormat = $defaultFormat;
-        $this->finder        = $finder;
+        $this->finder = $finder->files();
     }
 
     /**
@@ -96,7 +96,7 @@ class Container
         }
 
         $name = $this->ensureDefaultFormat($name);
-        $this->finder->files()->name($name);
+        $this->finder->name($name);
 
         if (!$this->finder->count()) {
             return false;
@@ -107,10 +107,10 @@ class Container
             $paths[] = $file->getRealpath();
         }
 
-        $path      = end($paths);
+        $path = end($paths);
         $extension = pathinfo($path, PATHINFO_EXTENSION);
-        $handler   = $this->getHandler($extension);
-        $resource  = $handler->load($path);
+        $handler = $this->getHandler($extension);
+        $resource = $handler->load($path);
 
         $this->data[$name] = $resource;
 
@@ -185,7 +185,7 @@ class Container
             throw new InvalidArgumentException('Could not find config handler for extension: '.$extension);
         }
 
-        $handler                    = new $class;
+        $handler = new $class;
         $this->handlers[$extension] = $handler;
 
         return $handler;
