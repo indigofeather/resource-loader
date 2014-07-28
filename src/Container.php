@@ -7,21 +7,21 @@ use InvalidArgumentException;
 use LogicException;
 
 /**
- * Class Container
+ * Resource Container
  *
  * @package Indigofeather\ResourceLoader
  */
 class Container
 {
     /**
-     * @var  \Symfony\Component\Finder\Finder $finder resource finder
-     */
-    protected $finder;
-
-    /**
      * @var  array $handlers array of resource file handlers
      */
     protected $handlers;
+
+    /**
+     * @var  array $paths array of resource paths
+     */
+    protected $paths = [];
 
     /**
      * @var  string $defaultFormat default resource format
@@ -34,24 +34,18 @@ class Container
     protected $data = [];
 
     /**
-     * @var bool $hasAddedPaths must adds paths before load()
+     * @var  bool $hasAddedPaths must adds paths before load()
      */
     protected $hasAddedPaths = false;
 
     /**
      * Constructor
      *
-     * @param Finder $finder
      * @param string $defaultFormat
      */
-    public function __construct(Finder $finder = null, $defaultFormat = 'php')
+    public function __construct($defaultFormat = 'php')
     {
-        if (! $finder) {
-            $finder = new Finder();
-        }
-
         $this->defaultFormat = $defaultFormat;
-        $this->finder = $finder->files();
     }
 
     /**
@@ -73,8 +67,10 @@ class Container
      * @param string $name
      * @return bool
      */
-    protected function has($name)
+    public function has($name)
     {
+        $name = $this->ensureDefaultFormat($name);
+
         return isset($this->data[$name]);
     }
 
@@ -95,15 +91,18 @@ class Container
             return $cached;
         }
 
+        $finder = new Finder();
         $name = $this->ensureDefaultFormat($name);
-        $this->finder->name($name);
+        $finder->files()
+            ->in($this->paths)
+            ->name($name);
 
-        if (! $this->finder->count()) {
+        if (! $finder->count()) {
             return false;
         }
 
         $paths = [];
-        foreach ($this->finder as $file) {
+        foreach ($finder as $file) {
             $paths[] = $file->getRealpath();
         }
 
@@ -115,16 +114,6 @@ class Container
         $this->data[$name] = $resource;
 
         return $resource;
-    }
-
-    /**
-     * Get Finder
-     *
-     * @return Finder
-     */
-    public function getFinder()
-    {
-        return $this->finder;
     }
 
     /**
@@ -192,6 +181,16 @@ class Container
     }
 
     /**
+     * Get paths
+     *
+     * @return array paths
+     */
+    public function getPaths()
+    {
+        return $this->paths;
+    }
+
+    /**
      * Adds a path.
      *
      * @param  string $path path
@@ -210,8 +209,33 @@ class Container
      */
     public function addPaths(array $paths)
     {
-        $this->finder->in($paths);
+        $this->paths = array_unique(array_merge($this->paths, $paths));
         $this->hasAddedPaths = true;
+
+        return $this;
+    }
+
+    /**
+     * Removes a path.
+     *
+     * @param  string $path path
+     * @return $this
+     */
+    public function removePath($path)
+    {
+        return $this->removePaths((array) $path);
+    }
+
+    /**
+     * Removes paths.
+     *
+     * @param   array $paths paths
+     * @return  $this
+     */
+    public function removePaths(array $paths)
+    {
+        $this->paths = array_unique(array_diff($this->paths, $paths));
+        $this->paths or $this->hasAddedPaths = false;
 
         return $this;
     }

@@ -33,9 +33,7 @@ class ContainerTest extends \Codeception\TestCase\Test
 
     public function testConstructWithParams()
     {
-        $path = [codecept_root_dir().'resources'];
-        $finder = new Finder();
-        $container = new Container($finder->in($path), 'json');
+        $container = new Container('json');
         $this->assertEquals('json', $container->getDefaultFormat());
     }
 
@@ -78,23 +76,27 @@ class ContainerTest extends \Codeception\TestCase\Test
     /**
      * @expectedException InvalidArgumentException
      */
-    public function testAddWrongPath()
+    public function testLoadWrongPath()
     {
-        $this->container->addPath('path/to/aa');
+        $this->container->addPath('path/to/aa')->load('aaa');
     }
 
     /**
      * @expectedException InvalidArgumentException
      */
-    public function testAddWrongPaths()
+    public function testLoadWrongPaths()
     {
-        $this->container->addPaths(['path/to/aa', 'path/to/bb']);
+        $this->container->addPaths(['path/to/aa', 'path/to/bb'])->load('aaa');
     }
 
-    public function testLoad()
+    /**
+     * @dataProvider formatProvider
+     * @param $format
+     */
+    public function testLoad($format)
     {
-        $data = $this->container->setDefaultFormat('yml')
-            ->addPath($this->paths[0])
+        $data = $this->container->setDefaultFormat($format)
+            ->addPaths($this->paths)
             ->load('date');
 
         $this->assertArrayHasKey('date', $data);
@@ -102,10 +104,20 @@ class ContainerTest extends \Codeception\TestCase\Test
 
     public function testLoadTwice()
     {
+        $this->container->setDefaultFormat('ini')
+            ->addPath($this->paths[1])
+            ->load('date');
+
+        $this->container->load('date');
+        $this->assertTrue($this->container->has('date'));
+    }
+
+    public function testHas()
+    {
         $this->container->setDefaultFormat('yml')
             ->addPath($this->paths[0])
             ->load('date');
-        $this->assertArrayHasKey('date', $this->container->load('date'));
+        $this->assertTrue($this->container->has('date'));
     }
 
     public function testLoadNull()
@@ -122,16 +134,6 @@ class ContainerTest extends \Codeception\TestCase\Test
         $this->assertFalse($this->container->load('foo'));
     }
 
-    public function testLoadResourcesInMultiDir()
-    {
-        $this->container->addPaths($this->paths);
-        $json = $this->container->setDefaultFormat('json')->load('date');
-        $php = $this->container->setDefaultFormat('php')->load('date');
-        $ini = $this->container->setDefaultFormat('ini')->load('date');
-        $this->assertEquals($json, $php);
-        $this->assertArrayHasKey('date', $ini);
-    }
-
     public function testGet()
     {
         $this->container->addPaths($this->paths)->setDefaultFormat('yml')->load('date');
@@ -144,8 +146,36 @@ class ContainerTest extends \Codeception\TestCase\Test
         $this->assertNull($this->container->get('foo'));
     }
 
-    public function testGetFinder()
+    public function testAddPath()
     {
-        $this->assertInstanceOf("Symfony\\Component\\Finder\\Finder", $this->container->getFinder());
+        $this->container->addPath($this->paths[0]);
+        $this->assertCount(1, $this->container->getPaths());
+    }
+
+    public function testAddPaths()
+    {
+        $this->container->addPaths($this->paths);
+        $this->assertCount(2, $this->container->getPaths());
+    }
+
+    public function testRemovePath()
+    {
+        $this->container->addPaths($this->paths)
+            ->removePath($this->paths[0]);
+
+        $this->assertCount(1, $this->container->getPaths());
+    }
+
+    public function testRemovePaths()
+    {
+        $this->container->addPaths($this->paths)
+            ->removePaths($this->paths);
+
+        $this->assertCount(0, $this->container->getPaths());
+    }
+
+    public function testGetPaths()
+    {
+        $this->assertInternalType('array', $this->container->getPaths());
     }
 }
