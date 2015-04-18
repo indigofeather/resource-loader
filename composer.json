@@ -11,11 +11,11 @@
     "minimum-stability": "dev",
     "require": {
         "php": ">=5.4.0",
-        "symfony/finder": "~2.5"
+        "symfony/finder": "~2.8"
     },
     "require-dev": {
-        "codeception/codeception": "*",
-        "symfony/yaml": "~2.5"
+        "codeception/codeception": "2.0.12",
+        "symfony/yaml": "~2.8"
     },
     "suggest": {
         "symfony/yaml": "Allows YAML config handling."
