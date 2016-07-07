@@ -10,12 +10,12 @@
     ],
     "minimum-stability": "dev",
     "require": {
-        "php": ">=5.4.0",
-        "symfony/finder": "~2.8"
+        "php": ">=5.6.0",
+        "symfony/finder": "~3.1"
     },
     "require-dev": {
-        "codeception/codeception": "2.0.12",
-        "symfony/yaml": "~2.8"
+        "phpunit/phpunit": "5.4.*",
+        "symfony/yaml": "~3.1"
     },
     "suggest": {
         "symfony/yaml": "Allows YAML config handling."

@@ -1,9 +1,9 @@
 <?php
-
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Finder\Finder;
 use Indigofeather\ResourceLoader\Container;
 
-class ContainerTest extends \Codeception\TestCase\Test
+class ContainerTest extends TestCase
 {
     /**
      * @var Container
@@ -12,16 +12,16 @@ class ContainerTest extends \Codeception\TestCase\Test
 
     private $paths = [];
 
-    protected function _before()
+    protected function setUp()
     {
         $this->container = new Container();
         $this->paths = [
-            codecept_root_dir().'resources/foo/',
-            codecept_root_dir().'resources/bar/',
+            __DIR__.'/../resources/foo/',
+            __DIR__.'/../resources/bar/',
         ];
     }
 
-    protected function _after()
+    protected function tearDown()
     {
         $this->container = null;
     }
@@ -60,7 +60,7 @@ class ContainerTest extends \Codeception\TestCase\Test
     public function testSetMultiTimesDefaultFormat()
     {
         $this->container->setDefaultFormat('ini');
-        $this->container->setDefaultFormat('php');;
+        $this->container->setDefaultFormat('php');
         $this->container->setDefaultFormat('ini');
         $this->assertEquals('ini', $this->container->getDefaultFormat());
     }
